@@ -1,0 +1,123 @@
+EXKW <- function (mu.link="log", sigma.link="log", nu.link ="log") 
+{
+  mstats <- checklink("mu.link", "Extended Kumaraswamy", substitute(mu.link), 
+                      c("inverse", "log", "identity", "own"))
+  dstats <- checklink("sigma.link", "Extended Kumaraswamy", substitute(sigma.link), #
+                      c("inverse", "log", "identity", "own"))
+  vstats <- checklink("nu.link", "Extended Kumaraswamy",substitute(nu.link), 
+                      c("logshifted", "log", "identity", "own"))
+  
+  structure(
+    list(family = c(" ExKw", "Extended Kumaraswamy"),
+         parameters = list(mu=TRUE, sigma=TRUE, nu=TRUE), 
+         nopar = 3, 
+         type = "Continuous",
+         mu.link = as.character(substitute(mu.link)),  
+         sigma.link = as.character(substitute(sigma.link)), 
+         nu.link = as.character(substitute(nu.link)), 
+         mu.linkfun = mstats$linkfun, 
+         sigma.linkfun = dstats$linkfun, 
+         nu.linkfun = vstats$linkfun,
+         mu.linkinv = mstats$linkinv, 
+         sigma.linkinv = dstats$linkinv,
+         nu.linkinv = vstats$linkinv,
+         mu.dr = mstats$mu.eta, 
+         sigma.dr = dstats$mu.eta, 
+         nu.dr = vstats$mu.eta,
+         
+         dldm = function(y,mu,sigma,nu){ #----------------------------------------------------- ok
+           nd1 = gamlss:::numeric.deriv(dExKw(y, mu, sigma, nu,log = T),"mu", delta = 1e-04)
+           dldm = as.vector(attr(nd1, "gradient")) 
+           dldm
+         },
+         d2ldm2 = function(y,mu,sigma,nu){#----------------------------------------------------- ok
+           nd1 = gamlss:::numeric.deriv(dExKw(y, mu, sigma, nu,log = T),"mu", delta = 1e-04)
+           dldm = as.vector(attr(nd1, "gradient")) 
+           d2ldm2 = -dldm * dldm
+         },  
+         dldd = function(y,mu,sigma,nu){#----------------------------------------------------- ok  
+           nd1 = gamlss:::numeric.deriv(dExKw(y, mu, sigma, nu,log =T),"sigma", delta = 1e-04)
+           dldd = as.vector(attr(nd1, "gradient"))
+           dldd
+         } ,
+         d2ldd2 = function(y,mu,sigma,nu){#----------------------------------------------------- ok
+           nd1 = gamlss:::numeric.deriv(dExKw(y, mu, sigma, nu,log =T),"sigma", delta = 1e-04)
+           dldd = as.vector(attr(nd1, "gradient"))
+           d2ldd2 = -dldd*dldd
+           d2ldd2 
+         },
+         dldv = function(y,mu,sigma,nu){#----------------------------------------------------- ok
+           nd1 = gamlss:::numeric.deriv(dExKw(y, mu, sigma, nu,log =T),"nu", delta = 1e-04)
+           dldv = as.vector(attr(nd1, "gradient"))
+           dldv 
+         },
+         d2ldv2 = function(y,mu,sigma,nu){#----------------------------------------------------- ok 
+           nd1 = gamlss:::numeric.deriv(dExKw(y, mu, sigma, nu,log =T),"nu", delta = 1e-04)
+           dldv = as.vector(attr(nd1, "gradient"))
+           d2ldv2 = -dldv * dldv
+         },
+         d2ldmdd = function(y,mu,sigma,nu){#----------------------------------------------------- ok
+           nd1 = gamlss:::numeric.deriv(dExKw(y, mu, sigma, nu,log= TRUE), "mu", delta = 1e-04)
+           dldm = as.vector(attr(nd1, "gradient"))
+           nd1 = gamlss:::numeric.deriv(dExKw(y, mu, sigma, nu,log=TRUE), "sigma", delta = 1e-04)
+           dldd = as.vector(attr(nd1, "gradient"))           
+           d2ldmdd = -dldm * dldd
+           d2ldmdd               
+         },
+         d2ldmdv = function(y,mu,sigma,nu){#----------------------------------------------------- ok
+           nd1 = gamlss:::numeric.deriv(dExKw(y, mu, sigma, nu,log = TRUE), "mu", delta = 1e-04)
+           dldm = as.vector(attr(nd1, "gradient"))
+           nd1 = gamlss:::numeric.deriv(dExKw(y, mu, sigma, nu,log = TRUE), "nu", delta = 1e-04)
+           
+           dldv = as.vector(attr(nd1, "gradient"))
+           d2ldmdv = -dldm * dldv
+           d2ldmdv			
+         },
+         d2ldddv = function(y,mu,sigma,nu){#----------------------------------------------------- ok
+           nd1 = gamlss:::numeric.deriv(dExKw(y, mu, sigma, nu,log = TRUE), "sigma", delta = 1e-04)
+           dldm = as.vector(attr(nd1, "gradient"))
+           nd1 = gamlss:::numeric.deriv(dExKw(y, mu, sigma, nu,log = TRUE), "nu", delta = 1e-04)
+           
+           dldv = as.vector(attr(nd1, "gradient"))
+           d2ldmdv = -dldm * dldv
+           d2ldmdv	
+         },
+         G.dev.incr  = function(y,mu,sigma,nu,...) {
+           -2*dExKw(y,mu=mu,sigma=sigma,nu=nu,log=TRUE)
+         }, 
+         rqres = expression(rqres(pfun="pExKw", type="Continuous", y=y, mu=mu, sigma=sigma, nu=nu)),
+         mu.initial = expression( mu <- (y+mean(y))/2), 
+         sigma.initial = expression( sigma <- rep(sd(y)/2,length(y))), 
+         nu.initial = expression( nu <- rep(max(2*(mean(y)-median(y)),0.1), length(y))), # 2*max((mean(y)-median(y),0.1) # (mean(y)+sd(y))/4
+         mu.valid = function(mu) all(mu > 0),  
+         sigma.valid = function(sigma)  all(sigma > 0),
+         nu.valid = function(nu) all(nu > 0), 
+         y.valid = function(y)  all(y > 0 & y < 1)
+    ),
+    class = c("gamlss.family","family"))
+}
+
+#-----------------------------------------------------------------
+# Probability Density Function
+dExKw <- function(x,mu  = 0.2,sigma = 0.4, nu=1, log = FALSE){
+  if (any(nu < 0)) stop(paste("nu must be positive", "\n", ""))
+  if (any(mu < 0)) stop(paste("mu must be positive", "\n", ""))
+  if (any(sigma < 0)) stop(paste("sigma must be positive", "\n", ""))
+  if (any(x < 0)|any(x> 1))  stop(paste("x must be between 0 and 1", "\n", ""))
+  f <- mu*(x^(mu-1))*((1-x^mu)^(nu-1))*(nu+((sigma-nu)*((1-x^mu)^sigma)))/((1-((1-x^mu)^sigma)+((1-x^mu)^nu))^2)
+  if(log==FALSE) fx  <- f else fx <- log(f) 
+  fx
+}
+#----------------------------------------------------------------- 
+# Cumulative Density Function
+pExKw <- function(q,mu  = 0.2,sigma = 0.4, nu=1, lower.tail = TRUE, log.p = FALSE){
+  if (any(nu < 0)) stop(paste("nu must be positive", "\n", ""))
+  if (any(mu < 0)) stop(paste("mu must be positive", "\n", ""))
+  if (any(sigma < 0)) stop(paste("sigma must be positive", "\n", ""))
+  if (any(q < 0)|any(q > 1))  stop(paste("q must be between 0 and 1", "\n", ""))
+  x <- q
+  cdf <- (1-((1-x^mu)^sigma))/((1-(((1-x^mu)^sigma))+((1-x^mu)^nu)))
+  if(lower.tail==TRUE) cdf  <- cdf else  cdf <- 1-cdf 
+  if(log.p==FALSE) cdf  <- cdf else  cdf <- log(cdf) 
+  cdf
+}
