@@ -1,0 +1,233 @@
+# Given data
+x <-  c(
+  0.0903296, 0.2036540, 0.2043140, 0.2808870, 0.1976530, 0.3286410,
+  0.1486220, 0.1623940, 0.2627270, 0.1794550, 0.3266350, 0.2300810,
+  0.1833120, 0.1509440, 0.2000710, 0.1918020, 0.1541920, 0.4641250,
+  0.1170630, 0.1481410, 0.1448100, 0.1330830, 0.2760160, 0.4204770,
+  0.1224170, 0.2285950, 0.1138520, 0.2252140, 0.1769690, 0.2007440,
+  0.1670450, 0.2316230, 0.2910290, 0.3412730, 0.4387120, 0.2626510,
+  0.1896510, 0.1725670, 0.2400770, 0.3116460, 0.1635860, 0.1824530,
+  0.1641270, 0.1534810, 0.1618650, 0.2760160, 0.2538320, 0.2004470)
+#Calculate true mean
+
+true mean <- mean(x)
+# Calculate mean of order P (P = 1 to 5)
+mean_order_P_values <- sapply(1:5, function(P) mean(sort(x)[1:P]))
+# Calculate MSE and bias
+MSE <- (true mean - mean_order_P_values)^2
+bias <- true mean - mean_order_P_values
+# Print results
+cat("True Mean:", true mean, "\n")
+cat("Mean of Order P (P=1 to 5):", head(mean_order_P_values, 5), "\n")
+cat("MSE (P=1 to 5):", head(MSE, 5), "\n")
+cat("Bias (P=1 to 5):", head(bias, 5), "\n")
+# Plotting
+par(mfrow = c(2, 2)) # Setting up a 2x2 grid for plots
+# 1. Histogram of data
+hist(x, main = "Histogram of Data", xlab = "Value of x", col = "skyblue", border
+     = "white")
+# 2. Boxplot of data
+boxplot(x, main = "Boxplot of Data", col = "lightgreen")
+# 3. Plot of mean of order P
+plot(1:5, mean_order_P_values, type = "b", pch = 19, col = "blue",
+     main = "Mean of Order P", xlab = "P", ylab = "Mean Value")
+abline(h = true mean, col = "red", lty = 2) # True mean line
+# 4. Scatterplot of bias vs. MSE
+plot(bias, MSE, main = "Bias vs. MSE", xlab = "Bias", ylab = "MSE", col =
+       "darkred", pch = 16)
+# Add a regression line to the scatterplot
+fit <- lm(MSE~bias)
+abline(fit, col = "blue", lwd = 2)
+# Adding a legend
+legend("topright", legend = c("Data", "True Mean", "Regression Line"),
+       col = c("skyblue", "red", "blue"), lty = c(0, 2, 1), pch = c(15, NA, NA), bty = "n")
+# Reset the plot layout
+par(mfrow = c(1, 1))
+###############################
+# Data
+P <- 1:5
+True mean <- 0.2181104
+MOOP <- c(0.0903296, 0.1020908, 0.1070815, 0.1109154, 0.1153489)
+MSE <- c(0.01632794, 0.01346055, 0.01232742, 0.01149077, 0.01055993)
+Bias <- c(0.1277808, 0.1160196, 0.1110289, 0.107195, 0.1027615)
+# Plotting
+par(mfrow = c(1, 3), mar = c(5, 4, 4, 2)) # Adjusting margins
+# MOOP plot
+barplot(MOOP, names.arg = P, main = "Mean of Order P", xlab = "P", ylab =
+          "MOOP", col = "skyblue", ylim = c(0, max(MOOP) * 1.1))
+abline(h = True mean, col = "red", lty = 2)
+text(P, MOOP, labels = round(MOOP, 3), pos = 3, cex = 0.8)
+# MSE plot
+barplot(MSE, names.arg = P, main = "MSE", xlab = "P", ylab = "MSE", col =
+          "lightgreen", ylim = c(0, max(MSE) * 1.1))
+text(P, MSE, labels = round(MSE, 3), pos = 3, cex = 0.8)
+# Bias plot
+barplot(Bias, names.arg = P, main = "Bias", xlab = "P", ylab = "Bias", col =
+          "salmon", ylim = c(0, max(Bias) * 1.1))
+text(P, Bias, labels = round(Bias, 3), pos = 3, cex = 0.8)
+# Adding true mean and initials to each plot
+mtext(paste("True mean:", True mean), side = 1, line = 3, cex = 0.8, col = "red",
+      outer = TRUE)
+mtext("Initials", side = 1, line = 2, cex = 0.8, col = "red", outer = TRUE)
+# Reset plot layout
+
+par(mfrow = c(1, 1))
+#############################
+#App 1:
+  F<-function(x,a,b,c){
+    (1-(1-x^a)^b)/(1-(1-x^a)^b+(1-x^a)^c)
+  }
+f<-function(x,a,b,c){
+  a*x^(a-1)*(1-x^a)^(c-1)*(c+(b-c)*(1-x^a)^b)/(1-(1-x^a)^b+(1-x^a)^c)^2
+}
+h<-function(x,a,b,c){
+  f(x,a,b,c)/(1-F(x,a,b,c))
+}
+par(mfrow=c(3,3))
+curve(f(x,0.5,2,0.5),0,1,col=2,lwd=2)
+curve(f(x,0.5,0.8,0.3),0,1,col=2,lwd=2)
+curve(f(x,0.5,2,3),0,1,col=2,lwd=2)
+curve(f(x,1.5,2,0.5),0,1,col=2,lwd=2)
+curve(f(x,1.5,0.8,0.3),0,1,col=2,lwd=2)
+curve(f(x,1.5,2,3),0,1,col=2,lwd=2)
+curve(f(x,1,2,0.5),0,1,col=2,lwd=2)
+curve(f(x,1,0.8,0.3),0,1,col=2,lwd=2)
+curve(f(x,1,2,3),0,1,col=2,lwd=2)
+#—————————–
+par(mfrow=c(3,3))
+curve(h(x,0.5,2,0.5),0,1,col=2,lwd=2)
+curve(h(x,0.5,0.8,0.3),0,1,col=2,lwd=2)
+curve(h(x,0.5,2,3),0,1,col=2,lwd=2)
+curve(h(x,1.5,2,0.5),0,1,col=2,lwd=2)
+curve(h(x,1.5,0.8,0.3),0,1,col=2,lwd=2)
+curve(h(x,1.5,2,3),0,1,col=2,lwd=2)
+curve(h(x,1,2,0.5),0,1,col=2,lwd=2)
+curve(h(x,1,0.8,0.3),0,1,col=2,lwd=2)
+curve(h(x,1,2,3),0,1,col=2,lwd=2)
+x<-scan()
+0.4365 0.4260 0.5140 0.6907 0.7471 0.2605 0.6196
+0.8781 0.4990 0.6058 0.6891 0.5770 0.5394 0.1479
+0.2356 0.6012 0.1525 0.5483 0.6927 0.7261 0.3323
+0.0671 0.2361 0.4800 0.5707 0.7131 0.5853 0.6768
+0.5350 0.4151 0.6789 0.4576 0.3259 0.2303 0.7687
+0.4371 0.3383 0.6114 0.3480 0.4564 0.7804 0.3406
+0.4823 0.5912 0.5744 0.5481 0.1131 0.7290 0.0168
+0.5529 0.4530 0.3891 0.4752 0.3134 0.3175 0.1167
+0.6750 0.5113 0.5447 0.4143 0.5627 0.5150 0.0776
+0.3945 0.4553 0.4470 0.5285 0.5232 0.6465 0.0650
+0.8492 0.8147 0.3627 0.3906 0.4438 0.4612 0.3188
+0.2160 0.6707 0.6220 0.5629 0.4675 0.6844
+0.3413 0.4332 0.0854 0.3821 0.4694 0.3635
+0.4111 0.5349 0.3751 0.1546 0.4517 0.2681
+0.4049 0.5553 0.5878 0.4741 0.3598 0.7629
+0.5941 0.6174 0.6860 0.0609 0.6488 0.2747
+hist(x,prob=T)
+#———————–
+# http://pad.um.ac.ir/file/view/6075235 the beta power distribution
+pdf NHL<- function(x,a,b,c){
+  a*x^(a-1)*(1-x^a)^(c-1)*(c+(b-c)*(1-x^a)^b)/(1-(1-x^a)^b+(1-x^a)^c)^2
+}
+library("GenSA")
+library("AdequacyModel")
+fit.sa4 <- function(data,density) {
+  minusllike <- function(x) -sum(log(density(data,x[1],x[2],x[3])))
+  lower <- c(0.001,0.001,0.001) #may need some changes here
+  upper <- c(2000,5000,2000)
+  out <- GenSA(lower = lower, upper = upper,
+               fn = minusllike, control=list(verbose=TRUE,max.time=2))
+  return(out[c("value","par","counts")])
+}
+fit.sa4(x,pdf NHL)
+#———————–
+cdf EHL<-function(par,x){
+  a=par[1]
+  b=par[2]
+  c=par[3]
+  A<-(1-(1-x^a)^b)/(1-(1-x^a)^b+(1-x^a)^c)
+  B<-a*x^(a-1)*(1-x^a)^(c-1)*(c+(b-c)*(1-x^a)^b)/(1-(1-x^a)^b+(1-x^a)^c)^2
+  return(A)
+}
+pdf EHL<-function(par,x){
+  a=par[1]
+  b=par[2]
+  c=par[3]
+  A<-(1-(1-x^a)^b)/(1-(1-x^a)^b+(1-x^a)^c)
+  B<-a*x^(a-1)*(1-x^a)^(c-1)*(c+(b-c)*(1-x^a)^b)/(1-(1-x^a)^b+(1-x^a)^c)^2
+  return(B)
+}
+r<-runif(1,0,100)
+goodness.fit(pdf=pdf EHL, cdf=cdf EHL,
+             starts = c(1.0199819, 0.2616568, 2.8808778), data = x,
+             method="B", domain=c(0,1),mle=NULL)
+hist(x,prob=T)
+curve(f(x,1.0199819, 0.2616568, 2.8808778),0,1,add=T,col=2,lwd=2)
+#———————————————————————
+cdf beta<-function(par,x){
+  a=par[1]
+  b=par[2]
+  A<-pbeta(x,a,b)
+  B<-dbeta(x,a,b)
+  return(A)
+}
+pdf beta<-function(par,x){
+  a=par[1]
+  b=par[2]
+  A<-pbeta(x,a,b)
+  B<-dbeta(x,a,b)
+  return(B)
+}
+goodness.fit(pdf=pdf beta, cdf=cdf beta,
+             starts = c(1,1), data = x,
+             method="B", domain=c(0,1),mle=NULL)
+#—————————
+cdf kw<-function(par,x){
+  a=par[1]
+  b=par[2]
+  A<-1-(1-x^a)^b
+  B<-a*b*x^(a-1)*(1-x^a)^(b-1)
+  return(A)
+}
+pdf kw<-function(par,x){
+  a=par[1]
+  b=par[2]
+  A<-1-(1-x^a)^b
+  B<-a*b*x^(a-1)*(1-x^a)^(b-1)
+  return(B)
+}
+goodness.fit(pdf=pdf kw, cdf=cdf kw,
+             starts = c(1,1), data = x,
+             method="B", domain=c(0,1),mle=NULL)
+#———————————————-
+Distractive:
+  x1<-scan()
+0.4365 0.4260 0.5140 0.6907 0.7471 0.2605 0.6196
+0.8781 0.4990 0.6058 0.6891 0.5770 0.5394 0.1479
+0.2356 0.6012 0.1525 0.5483 0.6927 0.7261 0.3323
+0.0671 0.2361 0.4800 0.5707 0.7131 0.5853 0.6768
+0.5350 0.4151 0.6789 0.4576 0.3259 0.2303 0.7687
+0.4371 0.3383 0.6114 0.3480 0.4564 0.7804 0.3406
+0.4823 0.5912 0.5744 0.5481 0.1131 0.7290 0.0168
+0.5529 0.4530 0.3891 0.4752 0.3134 0.3175 0.1167
+0.6750 0.5113 0.5447 0.4143 0.5627 0.5150 0.0776
+0.3945 0.4553 0.4470 0.5285 0.5232 0.6465 0.0650
+0.8492 0.8147 0.3627 0.3906 0.4438 0.4612 0.3188
+0.2160 0.6707 0.6220 0.5629 0.4675 0.6844
+0.3413 0.4332 0.0854 0.3821 0.4694 0.3635
+0.4111 0.5349 0.3751 0.1546 0.4517 0.2681
+0.4049 0.5553 0.5878 0.4741 0.3598 0.7629
+0.5941 0.6174 0.6860 0.0609 0.6488 0.2747
+hist(x1,prob=T)
+x2<-scan()
+0.853 0.759 0.874 0.800 0.716 0.557 0.503 0.399 0.334 0.207 0.118 0.118
+0.097 0.078 0.067 0.056 0.044 0.036 0.026 0.019 0.014 0.010
+hist(x2,prob=T)
+#—————————————–
+c(mean(x1),var(x1),mean((x1-mean(x1))^3)/var(x1)^(1.5),mean((x1-mean(x1))^4)/var(x1)^2-
+    3)
+c(mean(x2),var(x2),mean((x2-mean(x2))^3)/var(x2)^(1.5),mean((x2-mean(x2))^4)/var(x2)^2-
+    3)
+par(mfrow=c(1,2))
+hist(x1,prob=T,main="data set 1",xlab="x")
+curve(f(x,1.0199819, 0.2616568, 2.8808778),0,1,add=T,col=2,lwd=2)
+hist(x2,prob=T,main="data set 2",xlab="x",ylim=c(0,6))
+curve(f(x,1.607795, 52.836909, 1.850019),0,1,add=T,col=2,lwd=2).
